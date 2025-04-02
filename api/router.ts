@@ -15,6 +15,8 @@ import {
   getStarInfo,
 } from './javbusParser.js';
 import { validate } from './validatorUtils.js';
+import fanzaScraper from './fanzaScraper.js';
+import { body } from 'express-validator';
 
 const movieRouter = Router();
 
@@ -26,6 +28,7 @@ movieRouter.get('/', validate(moviesPageValidator), async (req, res, next) => {
   const type = query.type as MovieType | undefined;
   const filterType = query.filterType as FilterType | undefined;
   const filterValue = query.filterValue as string | undefined;
+  // const fetchSummary = false;
 
   try {
     const response = await getMoviesByPage(page, magnet, type, filterType, filterValue);
@@ -43,6 +46,7 @@ movieRouter.get('/search', validate(searchMoviesPageValidator), async (req, res,
   const magnet = query.magnet as MagnetType;
   const type = query.type as MovieType | undefined;
   const keyword = query.keyword as string;
+  // const fetchSummary = false;
 
   try {
     const response = await getMoviesByKeywordAndPage(keyword.trim(), page, magnet, type);
@@ -72,6 +76,50 @@ movieRouter.get('/:id', async (req, res, next) => {
     next(e instanceof Error && e.message.includes('404') ? new createError.NotFound() : e);
   }
 });
+
+movieRouter.get('/:id/summary', async (req, res, next) => {
+  const movieId = req.params.id;
+
+  try {
+    const summaryResult = await fanzaScraper.getMovieSummary(movieId);
+
+    if (summaryResult.summary) {
+      res.json({
+        movieId,
+        summary: summaryResult.summary,
+        url: summaryResult.url || null,
+      });
+    } else {
+      res.status(404).json({
+        movieId,
+        summary: null,
+        url: null,
+        message: 'Summary not found for this movie',
+      });
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
+movieRouter.post(
+  '/bulk-details',
+  validate([
+    body('ids').isArray().withMessage('IDs must be an array'),
+    body('ids.*').isString().withMessage('All IDs must be strings'),
+  ]),
+  async (req, res, next) => {
+    const { ids } = req.body;
+
+    try {
+      const movies = await Promise.all(ids.map((id: string) => getMovieDetail(id)));
+
+      res.json(movies);
+    } catch (e) {
+      next(e);
+    }
+  },
+);
 
 const starRouter = Router();
 
