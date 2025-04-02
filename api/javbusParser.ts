@@ -22,6 +22,7 @@ import type {
   StarInfo,
 } from './types.js';
 import { formatImageUrl, PAGE_REG } from './utils.js';
+// import fanzaScraper from './fanzaScraper.js';
 
 type StarInfoRequiredKey = 'avatar' | 'id' | 'name';
 
@@ -38,21 +39,40 @@ const starInfoMap: Record<StarInfoOptionalKey, string> = {
   hobby: '愛好: ',
 };
 
-function parseMoviesPage(pageHTML: string, filter?: (movie: Movie) => boolean): MoviesPage {
+// Add this type definition to clarify the minimum movie info needed for listings
+export interface MovieListItem {
+  id: string;
+  title: string;
+  img: string | null;
+  date: string | null;
+  tags: string[];
+}
+
+function parseMoviesPage(pageHTML: string, filter?: (movie: MovieListItem) => boolean): MoviesPage {
   const doc = parse(pageHTML);
 
-  const movies = doc
+  // First get all the items and build objects with the movie information
+  const movieObjects = doc
     .querySelectorAll('#waterfall #waterfall .item')
     .map((item) => {
       const img =
         formatImageUrl(item.querySelector('.photo-frame img')?.getAttribute('src')) ?? null;
       const title = item.querySelector('.photo-frame img')?.getAttribute('title') ?? '';
       const info = item.querySelectorAll('.photo-info date');
-      const id = info[0]?.textContent;
+      const id = info[0]?.textContent ?? ''; // Make sure id is never undefined
       const date = info[1]?.textContent ?? null;
       const tags = item.querySelectorAll('.item-tag button').map((item) => item.textContent);
 
-      return { date, id, img, title, tags };
+      // Create object with all the movie properties
+      const movieObj = {
+        date,
+        id,
+        img,
+        title,
+        tags,
+      };
+
+      return movieObj;
     })
     .filter((movie): movie is Movie => Boolean(movie.id))
     .filter((movie) => filter?.(movie) ?? true);
@@ -67,7 +87,7 @@ function parseMoviesPage(pageHTML: string, filter?: (movie: Movie) => boolean): 
   const hasNextPage = doc.querySelector('.pagination li #next') !== null;
   const nextPage = hasNextPage ? currentPage + 1 : null;
 
-  return { movies, pagination: { currentPage, hasNextPage, nextPage, pages } };
+  return { movies: movieObjects, pagination: { currentPage, hasNextPage, nextPage, pages } };
 }
 
 export function parseStarInfo(pageHTML: string, starId: string): StarInfo {
@@ -297,6 +317,21 @@ function multipleInfoFinder<T>(
   return mapper ? infos.map<T>(mapper) : infos;
 }
 
+// async function getImageSize(url: string): Promise<ImageSize | null> {
+//   try {
+//     const { width, height } = await probe(url, {
+//       agent,
+//       headers: {
+//         Referer: JAVBUS,
+//       },
+//     });
+//     return { width, height };
+//   } catch (error) {
+//     console.error(`Failed to get image size for ${url}:`, error);
+//     return null;
+//   }
+// }
+
 export async function getMovieDetail(id: string): Promise<MovieDetail> {
   const res = await client(`${JAVBUS}/${id}`).text();
   const doc = parse(res);
@@ -308,7 +343,6 @@ export async function getMovieDetail(id: string): Promise<MovieDetail> {
     null;
 
   let imageSize: ImageSize | null = null;
-
   if (img) {
     try {
       const { width, height } = await probe(img, {
@@ -333,12 +367,16 @@ export async function getMovieDetail(id: string): Promise<MovieDetail> {
   const producer = linkInfoFinder(infoNodes, '製作商:', 'studio');
   const publisher = linkInfoFinder(infoNodes, '發行商:', 'label');
   const series = linkInfoFinder(infoNodes, '系列:', 'series');
+
+  // Fix genres parsing using the original approach
   const genres = multipleInfoFinder<Property>(
     infoNodes,
     'genre',
     (genre) => !genre.hasAttribute('onmouseover'),
     (genre) => genre.querySelector('label a'),
   );
+
+  // Fix stars parsing using the original approach
   const stars = multipleInfoFinder<Property>(
     infoNodes,
     'star',
@@ -379,14 +417,13 @@ export async function getMovieDetail(id: string): Promise<MovieDetail> {
       ?.querySelectorAll('a')
       .map((link) => {
         const href = link.getAttribute('href');
-
         const id = href?.split('/').pop();
         const title = link.getAttribute('title');
         const img = formatImageUrl(link.querySelector('img')?.getAttribute('src')) ?? null;
 
         return { id, title, img };
       })
-      .filter((movie): movie is SimilarMovie => Boolean(id) && Boolean(title)) ?? [];
+      .filter((movie): movie is SimilarMovie => Boolean(movie.id) && Boolean(movie.title)) ?? [];
 
   return {
     id,

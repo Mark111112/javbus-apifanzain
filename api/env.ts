@@ -9,7 +9,7 @@ const proxySchema = z
 
 const envSchema = {
   NODE_ENV: z.enum(['development', 'production']).default('development'),
-  PORT: port().default(3000),
+  PORT: port().default(8924),
   SSL_CERT: z.string().optional(),
   SSL_KEY: z.string().optional(),
   HTTP_PROXY: proxySchema,

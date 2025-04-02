@@ -69,6 +69,12 @@ export interface MovieDetail {
   uc: string | null;
 }
 
+export interface MovieSummary {
+  movieId: string;
+  summary: string | null;
+  url: string | null;
+}
+
 export interface Pagination {
   currentPage: number;
   hasNextPage: boolean;

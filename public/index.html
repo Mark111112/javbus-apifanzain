@@ -1,197 +1,155 @@
 <!doctype html>
-<html lang="zh-Hans">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JavBus API</title>
-    <link rel="icon" href="/favicon.png" sizes="32x32" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/css/normalize.css" />
-    <link rel="stylesheet" href="/css/base.css" />
+    <title>JavBus API - Documentation</title>
     <style>
-      .tip {
-        padding: 0 32px;
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
       }
 
-      .tip,
-      .try {
-        margin-top: 16px;
+      h1,
+      h2,
+      h3 {
+        color: #0066cc;
       }
 
-      .list {
-        margin: 8px 0 0 0;
-        padding: 0 16px 0 32px;
+      .endpoint {
+        background: #f8f8f8;
+        border-left: 3px solid #0066cc;
+        padding: 10px 15px;
+        margin: 15px 0;
       }
 
-      .list li:not(:last-child) {
-        margin-bottom: 8px;
-      }
-
-      .list li a {
-        line-height: 24px;
-      }
-
-      .tag {
-        background-color: #e6e6e6;
+      .method {
+        font-weight: bold;
         display: inline-block;
-        border-radius: 4px;
-        padding: 0px 4px;
+        min-width: 60px;
       }
 
-      .user-wrapper {
-        position: absolute;
-        top: 16px;
-        right: 16px;
+      .url {
+        font-family: monospace;
+        background: #e0e0e0;
+        padding: 2px 5px;
+        border-radius: 3px;
       }
 
-      .login {
-        display: none;
+      code {
+        background: #f0f0f0;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-family: monospace;
       }
 
-      .login.show {
-        display: flex;
-      }
-
-      .login-link {
-        border-radius: 4px;
-        background-color: #008cc4;
-        color: #ffffff;
-        cursor: pointer;
-        font-size: 14px;
-        width: 48px;
-        height: 24px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .login-link:hover {
-        text-decoration: none;
-      }
-
-      .user {
-        display: none;
-        align-items: center;
-      }
-
-      .user.show {
-        display: flex;
-      }
-
-      .username {
-        margin-right: 8px;
-      }
-
-      .logout {
-        border: none;
-        border-radius: 4px;
-        background-color: #008cc4;
-        color: #ffffff;
-        cursor: pointer;
-        font-size: 14px;
-        width: 48px;
-        height: 24px;
-        box-sizing: border-box;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
+      pre {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 5px;
+        overflow-x: auto;
       }
     </style>
   </head>
 
   <body>
-    <div class="container">
-      <h1 class="title">JavBus API</h1>
-      <p class="tip">如果你看到这个页面，说明服务已经成功运行起来！</p>
-      <p>
-        <a href="https://github.com/ovnrain/javbus-api#readme" target="_blank">查看文档</a>
-      </p>
-      <p class="try">你可以尝试访问以下 API：</p>
-      <ol class="list">
-        <li>
-          <a href="/api/movies">返回有磁力链接的第一页影片</a>
-        </li>
-        <li>
-          <a href="/api/movies?filterType=star&filterValue=qs6&magnet=all">
-            返回演员 ID 为
-            <span class="tag">qs6</span>
-            的影片的第一页，包含有磁力链接和无磁力链接的影片
-          </a>
-        </li>
-        <li>
-          <a href="/api/movies/search?keyword=三上">
-            搜索关键词为
-            <span class="tag">三上</span>
-            的影片的第一页，只返回有磁力链接的影片
-          </a>
-        </li>
-        <li>
-          <p>影片详情</p>
-          <ul class="list">
-            <li><a href="/api/movies/IPX-585">IPX-585</a></li>
-            <li><a href="/api/movies/IPZZ-023">IPZZ-023</a></li>
-            <li><a href="/api/movies/IPX-451">IPX-451</a></li>
-          </ul>
-        </li>
-        <li>
-          <p>磁力链接</p>
-          <ul class="list">
-            <li><a href="/api/magnets/JUQ-434?gid=56326057355&uc=0">JUQ-434</a></li>
-            <li><a href="/api/magnets/IPZZ-135?gid=56327757424&uc=0">IPZZ-135</a></li>
-            <li>
-              <a href="/api/magnets/SSNI-730?gid=42785257471&uc=0">SSNI-730</a>
-              <ul>
-                <li>
-                  <a href="/api/magnets/SSNI-730?gid=42785257471&uc=0&sortBy=date&sortOrder=desc">按照日期降序排序</a>
-                </li>
-                <li>
-                  <a href="/api/magnets/SSNI-730?gid=42785257471&uc=0&sortBy=size&sortOrder=asc">按照大小升序排序</a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-      </ol>
-      <div class="user-wrapper">
-        <div class="login">
-          <a class="login-link" href="/login.html">登录</a>
-        </div>
-        <div class="user">
-          <span class="username"></span>
-          <button class="logout">退出</button>
-        </div>
+    <h1>JavBus API Documentation</h1>
+
+    <section>
+      <h2>Introduction</h2>
+      <p>This API provides movie and star information from JavBus. The API includes movie details, listings, and FANZA summary information.</p>
+    </section>
+
+    <section>
+      <h2>Performance Optimizations</h2>
+      <p>Movie summaries are fetched from FANZA but the operation is expensive. The following optimizations have been implemented:</p>
+      <ul>
+        <li>Conditional summary fetching with the <code>fetchSummary</code> parameter</li>
+        <li>List and search endpoints never fetch summaries to improve performance</li>
+        <li>Bulk movie details endpoint for efficient batch processing</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>API Endpoints</h2>
+
+      <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/movies</span></p>
+        <p>Get a list of movies, without summaries for better performance.</p>
+        <p>Query parameters:</p>
+        <ul>
+          <li><code>page</code>: Page number</li>
+          <li><code>magnet</code>: 'all' or 'exist'</li>
+          <li><code>type</code>: 'normal' or 'uncensored'</li>
+        </ul>
       </div>
-    </div>
 
-    <script>
-      (function () {
-        const user = document.querySelector('.user');
-        const username = document.querySelector('.username');
-        const login = document.querySelector('.login');
-        const logout = document.querySelector('.logout');
+      <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/movies/search</span></p>
+        <p>Search for movies, without summaries for better performance.</p>
+        <p>Query parameters:</p>
+        <ul>
+          <li><code>keyword</code>: Search keyword</li>
+          <li><code>page</code>: Page number</li>
+          <li><code>magnet</code>: 'all' or 'exist'</li>
+          <li><code>type</code>: 'normal' or 'uncensored'</li>
+        </ul>
+      </div>
 
-        fetch('/api/user')
-          .then((res) => res.json())
-          .then((res) => {
-            if (res.username) {
-              username.textContent = res.username;
-              user.classList.add('show');
-              login.classList.remove('show');
-            } else if (res.useCredentials) {
-              login.classList.add('show');
-              user.classList.remove('show');
-            }
-          });
+      <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/movies/:id</span></p>
+        <p>Get detailed information about a movie.</p>
+        <p>Query parameters:</p>
+        <ul>
+          <li><code>fetchSummary</code>: 'true' or 'false' (default is 'true')</li>
+        </ul>
+      </div>
 
-        logout.addEventListener('click', () => {
-          fetch('/api/logout', {
-            method: 'POST',
-          }).then(() => {
-            window.location.reload();
-          });
-        });
-      })();
-    </script>
+      <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/movies/:id/summary</span></p>
+        <p>Get only the summary information for a movie.</p>
+      </div>
+
+      <div class="endpoint">
+        <p><span class="method">POST</span> <span class="url">/movies/bulk-details</span></p>
+        <p>Get detailed information for multiple movies in one request.</p>
+        <p>Request body:</p>
+        <pre>
+{
+  "ids": ["ABC-123", "DEF-456", "GHI-789"],
+  "fetchSummary": false  // Optional, defaults to false
+}</pre
+        >
+      </div>
+    </section>
+
+    <section>
+      <h2>Configuration</h2>
+      <p>
+        The FANZA Scraper uses the <code>config/config.json</code> file to store mapping rules for different movie ID formats between JavBus and
+        FANZA.
+      </p>
+      <p>Example configuration:</p>
+      <pre>
+{
+  "fanza_mappings": {
+    "abw": "118abw",
+    "ipx": "ipx",
+    "ssni": "ssni"
+  },
+  "fanza_suffixes": {
+    "stars": "00"
+  }
+}</pre
+      >
+    </section>
+
+    <footer>
+      <p>See more details in the <a href="https://github.com/ovnrain/javbus-api">GitHub repository</a>.</p>
+    </footer>
   </body>
 </html>
