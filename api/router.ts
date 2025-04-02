@@ -18,35 +18,31 @@ import { validate } from './validatorUtils.js';
 import fanzaScraper from './fanzaScraper.js';
 import { body } from 'express-validator';
 
-const movieRouter = Router();
+const router = Router();
 
-movieRouter.get('/', validate(moviesPageValidator), async (req, res, next) => {
+// Movies routes
+router.get('/movies', validate(moviesPageValidator), async (req, res, next) => {
   const query = req.query;
-
   const page = query.page as string;
   const magnet = query.magnet as MagnetType;
   const type = query.type as MovieType | undefined;
   const filterType = query.filterType as FilterType | undefined;
   const filterValue = query.filterValue as string | undefined;
-  // const fetchSummary = false;
 
   try {
     const response = await getMoviesByPage(page, magnet, type, filterType, filterValue);
-
     res.json(response);
   } catch (e) {
     next(e);
   }
 });
 
-movieRouter.get('/search', validate(searchMoviesPageValidator), async (req, res, next) => {
+router.get('/movies/search', validate(searchMoviesPageValidator), async (req, res, next) => {
   const query = req.query;
-
   const page = query.page as string;
   const magnet = query.magnet as MagnetType;
   const type = query.type as MovieType | undefined;
   const keyword = query.keyword as string;
-  // const fetchSummary = false;
 
   try {
     const response = await getMoviesByKeywordAndPage(keyword.trim(), page, magnet, type);
@@ -64,21 +60,21 @@ movieRouter.get('/search', validate(searchMoviesPageValidator), async (req, res,
   }
 });
 
-movieRouter.get('/:id', async (req, res, next) => {
-  const movieId = req.params.id;
+// Movie detail route
+router.get('/movies/:id', async (req, res, next) => {
+  const movieId = req.params.id as string;
 
   try {
     const movie = await getMovieDetail(movieId);
-
     res.json(movie);
   } catch (e) {
-    // 格式化一下错误
     next(e instanceof Error && e.message.includes('404') ? new createError.NotFound() : e);
   }
 });
 
-movieRouter.get('/:id/summary', async (req, res, next) => {
-  const movieId = req.params.id;
+// Movie summary route
+router.get('/movies/:id/summary', async (req, res, next) => {
+  const movieId = req.params.id as string;
 
   try {
     const summaryResult = await fanzaScraper.getMovieSummary(movieId);
@@ -102,8 +98,9 @@ movieRouter.get('/:id/summary', async (req, res, next) => {
   }
 });
 
-movieRouter.post(
-  '/bulk-details',
+// Bulk details route
+router.post(
+  '/movies/bulk',
   validate([
     body('ids').isArray().withMessage('IDs must be an array'),
     body('ids.*').isString().withMessage('All IDs must be strings'),
@@ -113,7 +110,6 @@ movieRouter.post(
 
     try {
       const movies = await Promise.all(ids.map((id: string) => getMovieDetail(id)));
-
       res.json(movies);
     } catch (e) {
       next(e);
@@ -121,44 +117,51 @@ movieRouter.post(
   },
 );
 
-const starRouter = Router();
-
-starRouter.get('/:id', validate([typeValidator]), async (req, res, next) => {
+// Star info route
+router.get('/stars/:id', validate([typeValidator]), async (req, res, next) => {
   const starId = req.params.id as string;
   const type = req.query.type as MovieType | undefined;
 
   try {
     const starInfo = await getStarInfo(starId, type);
-
     res.json(starInfo);
   } catch (e) {
-    // 格式化一下错误
     next(e instanceof Error && e.message.includes('404') ? new createError.NotFound() : e);
   }
 });
 
-const magnetRouter = Router();
+// Star movies route
+router.get('/stars/:id/movies', validate([typeValidator]), async (req, res, next) => {
+  const starId = req.params.id as string;
+  const type = req.query.type as MovieType | undefined;
 
-magnetRouter.get('/:movieId', validate(magnetsValidator), async (req, res, next) => {
+  try {
+    const movies = await getMoviesByPage('1', undefined, type, 'star', starId);
+    res.json(movies);
+  } catch (e) {
+    next(e);
+  }
+});
+
+// Magnets route
+router.get('/magnets/:movieId', validate(magnetsValidator), async (req, res, next) => {
   const movieId = req.params.movieId as string;
   const gid = req.query.gid as string;
   const uc = req.query.uc as string;
   const sortBy = req.query.sortBy as SortBy | undefined;
   const sortOrder = req.query.sortOrder as SortOrder | undefined;
 
+  if (!movieId || !gid || !uc) {
+    res.status(400).json({ error: 'Missing required parameters' });
+    return;
+  }
+
   try {
     const magnets = await getMovieMagnets({ movieId, gid, uc, sortBy, sortOrder });
-
     res.json(magnets);
   } catch (e) {
     next(e);
   }
 });
-
-const router = Router();
-
-router.use('/movies', movieRouter);
-router.use('/stars', starRouter);
-router.use('/magnets', magnetRouter);
 
 export default router;
